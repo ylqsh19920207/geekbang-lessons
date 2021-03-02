@@ -23,7 +23,10 @@ public class DatabaseUserRepository implements UserRepository {
     /**
      * 通用处理方式
      */
-    private static Consumer<Throwable> COMMON_EXCEPTION_HANDLER = e -> logger.log(Level.SEVERE, e.getMessage());
+    private static Consumer<Throwable> COMMON_EXCEPTION_HANDLER = e -> {
+        e.printStackTrace();
+        logger.log(Level.SEVERE, e.getMessage());
+    };
 
     public static final String INSERT_USER_DML_SQL =
             "INSERT INTO users(name,password,email,phoneNumber) VALUES " +
@@ -32,6 +35,10 @@ public class DatabaseUserRepository implements UserRepository {
     public static final String QUERY_ALL_USERS_DML_SQL = "SELECT id,name,password,email,phoneNumber FROM users";
 
     private final DBConnectionManager dbConnectionManager;
+
+    public DatabaseUserRepository() {
+        this.dbConnectionManager = new DBConnectionManager();
+    }
 
     public DatabaseUserRepository(DBConnectionManager dbConnectionManager) {
         this.dbConnectionManager = dbConnectionManager;
@@ -43,7 +50,8 @@ public class DatabaseUserRepository implements UserRepository {
 
     @Override
     public boolean save(User user) {
-        return false;
+        return execute(INSERT_USER_DML_SQL, COMMON_EXCEPTION_HANDLER, user.getName(),
+                user.getPassword(),user.getEmail(),user.getPhoneNumber());
     }
 
     @Override
@@ -112,21 +120,7 @@ public class DatabaseUserRepository implements UserRepository {
         Connection connection = getConnection();
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            for (int i = 0; i < args.length; i++) {
-                Object arg = args[i];
-                Class argType = arg.getClass();
-
-                Class wrapperType = wrapperToPrimitive(argType);
-
-                if (wrapperType == null) {
-                    wrapperType = argType;
-                }
-
-                // Boolean -> boolean
-                String methodName = preparedStatementMethodMappings.get(argType);
-                Method method = PreparedStatement.class.getMethod(methodName, wrapperType);
-                method.invoke(preparedStatement, i + 1, args);
-            }
+            assemblePreparedStatement(preparedStatement, args);
             ResultSet resultSet = preparedStatement.executeQuery();
             // 返回一个 POJO List -> ResultSet -> POJO List
             // ResultSet -> T
@@ -137,9 +131,39 @@ public class DatabaseUserRepository implements UserRepository {
         return null;
     }
 
+    protected boolean execute(String sql, Consumer<Throwable> exceptionHandler, Object... args) {
+        Connection connection = getConnection();
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            assemblePreparedStatement(preparedStatement, args);
+            return preparedStatement.execute();
+        } catch (Throwable e) {
+            exceptionHandler.accept(e);
+        }
+        return false;
+    }
+
 
     private static String mapColumnLabel(String fieldName) {
         return fieldName;
+    }
+
+    private void assemblePreparedStatement(PreparedStatement preparedStatement, Object... args) throws Throwable {
+        for (int i = 0; i < args.length; i++) {
+            Object arg = args[i];
+            Class argType = arg.getClass();
+
+            Class wrapperType = wrapperToPrimitive(argType);
+
+            if (wrapperType == null) {
+                wrapperType = argType;
+            }
+
+            // Boolean -> boolean
+            String methodName = preparedStatementMethodMappings.get(argType);
+            Method method = PreparedStatement.class.getMethod(methodName, int.class, wrapperType);
+            method.invoke(preparedStatement, i + 1, arg);
+        }
     }
 
     /**

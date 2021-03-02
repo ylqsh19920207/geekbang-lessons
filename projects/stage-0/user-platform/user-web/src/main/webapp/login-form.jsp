@@ -18,15 +18,41 @@
       }
     </style>
 </head>
+<script type="text/javascript">
+
+	function addUser(){
+		$.ajax({
+			type:'post',
+			data:{
+				name:$("#inputName").val(),
+				email:$("#inputEmail").val(),
+				phoneNumber:$("#inputPhoneNumber").val(),
+				password:$("#inputPassword").val()
+			},
+			url:'http://127.0.0.1:8080/user/register',
+			success:function(data){
+				alert("保存成功！");
+				window.location.href='http://127.0.0.1:8080/hello/world';
+			}
+		});
+	}
+</script>
 <body>
 	<div class="container">
-		<form class="form-signin">
+		<form class="form-signin" action="register">
 			<h1 class="h3 mb-3 font-weight-normal">登录</h1>
+			<label for="inputName" class="sr-only">请输出账号名称</label> <input
+				 id="name" name="name" class="form-control"
+				placeholder="请输入账号名称" required autofocus>
 			<label for="inputEmail" class="sr-only">请输出电子邮件</label> <input
-				type="email" id="inputEmail" class="form-control"
-				placeholder="请输入电子邮件" required autofocus> <label
+				type="email" id="email" name="email" class="form-control"
+				placeholder="请输入电子邮件" required autofocus>
+			<label for="inputPhoneNumber" class="sr-only">请输出手机号</label> <input
+				 id="phoneNumber" name="phoneNumber" class="form-control"
+				placeholder="请输入手机号" required autofocus>
+			<label
 				for="inputPassword" class="sr-only">Password</label> <input
-				type="password" id="inputPassword" class="form-control"
+				type="password" id="password" name="password" class="form-control"
 				placeholder="请输入密码" required>
 			<div class="checkbox mb-3">
 				<label> <input type="checkbox" value="remember-me">
