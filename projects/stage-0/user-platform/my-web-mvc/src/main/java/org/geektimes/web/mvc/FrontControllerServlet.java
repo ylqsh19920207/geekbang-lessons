@@ -20,6 +20,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -149,7 +150,12 @@ public class FrontControllerServlet extends HttpServlet {
                         requestDispatcher.forward(request, response);
                         return;
                     } else if (controller instanceof RestController) {
-                        // TODO
+                        RestController restController = RestController.class.cast(controller);
+                        response.setContentType("application/json;charset=UTF-8");
+                        Object execute = restController.execute(request, response);
+                        PrintWriter out = new PrintWriter(response.getOutputStream());
+                        out.print(execute);
+                        out.flush();
                     }
 
                 }

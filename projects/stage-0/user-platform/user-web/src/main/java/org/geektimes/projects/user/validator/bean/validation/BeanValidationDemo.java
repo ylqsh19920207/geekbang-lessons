@@ -16,7 +16,8 @@ public class BeanValidationDemo {
         Validator validator = factory.getValidator();
 
         User user = new User();
-        user.setPassword("***");
+        user.setPassword("123456788");
+        user.setPhoneNumber("138617059");
 
         // 校验结果
         Set<ConstraintViolation<User>> violations = validator.validate(user);
