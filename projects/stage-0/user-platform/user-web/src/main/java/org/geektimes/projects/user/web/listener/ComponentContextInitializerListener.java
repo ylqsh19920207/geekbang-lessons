@@ -42,6 +42,8 @@ public class ComponentContextInitializerListener implements ServletContextListen
         Config config = ConfigProvider.getConfig();
         System.out.println("Application Name:" + config.getValue("application.name", String.class));
         System.out.println("Test Integer:" + config.getValue("test.integer", Integer.class));
+        Config config1 = ConfigProvider.getConfig();
+        Config config2 = ConfigProvider.getConfig();
 
     }
 
