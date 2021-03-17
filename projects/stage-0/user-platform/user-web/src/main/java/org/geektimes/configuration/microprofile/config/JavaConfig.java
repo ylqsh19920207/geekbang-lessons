@@ -5,7 +5,9 @@ import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigValue;
 import org.eclipse.microprofile.config.spi.ConfigSource;
 import org.eclipse.microprofile.config.spi.Converter;
+import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
+import java.lang.reflect.Type;
 import java.util.*;
 
 public class JavaConfig implements Config {
@@ -14,6 +16,9 @@ public class JavaConfig implements Config {
      * 内部可变的集合，不要直接暴露在外面
      */
     private List<ConfigSource> configSources = new LinkedList<>();
+
+    private Map<String, Converter> converterMap = new HashMap<>();
+
 
     private static Comparator<ConfigSource> configSourceComparator = new Comparator<ConfigSource>() {
         @Override
@@ -28,13 +33,22 @@ public class JavaConfig implements Config {
         serviceLoader.forEach(configSources::add);
         // 排序
         configSources.sort(configSourceComparator);
+
+        ServiceLoader<Converter> converterLoader = ServiceLoader.load(Converter.class, classLoader);
+        converterLoader.forEach(converter -> {
+            Type typeArgument = ((ParameterizedTypeImpl) converter.getClass().getGenericInterfaces()[0]).getActualTypeArguments()[0];
+            converterMap.put(typeArgument.getTypeName(), converter);
+        });
+
+
     }
 
     @Override
     public <T> T getValue(String propertyName, Class<T> propertyType) {
         String propertyValue = getPropertyValue(propertyName);
         // String 转换成目标类型
-        return null;
+        Optional<Converter<T>> optional = getConverter(propertyType);
+        return optional.map(tConverter -> tConverter.convert(propertyValue)).orElse(null);
     }
 
     @Override
@@ -71,7 +85,8 @@ public class JavaConfig implements Config {
 
     @Override
     public <T> Optional<Converter<T>> getConverter(Class<T> forType) {
-        return Optional.empty();
+        Converter<T> converter = (Converter<T>) converterMap.get(forType.getName());
+        return Optional.ofNullable(converter);
     }
 
     @Override

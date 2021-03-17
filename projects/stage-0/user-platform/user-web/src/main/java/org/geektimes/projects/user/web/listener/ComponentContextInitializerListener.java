@@ -1,5 +1,7 @@
 package org.geektimes.projects.user.web.listener;
 
+import org.eclipse.microprofile.config.Config;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.geektimes.context.ComponentContext;
 import org.geektimes.projects.user.domain.User;
 import org.geektimes.projects.user.management.UserManager;
@@ -36,6 +38,11 @@ public class ComponentContextInitializerListener implements ServletContextListen
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        Config config = ConfigProvider.getConfig();
+        System.out.println("Application Name:" + config.getValue("application.name", String.class));
+        System.out.println("Test Integer:" + config.getValue("test.integer", Integer.class));
+
     }
 
     @Override
