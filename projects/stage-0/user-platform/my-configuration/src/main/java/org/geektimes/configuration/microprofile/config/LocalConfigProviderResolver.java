@@ -7,7 +7,7 @@ import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 
-public class DefaultConfigProviderResolver extends ConfigProviderResolver {
+public class LocalConfigProviderResolver extends ConfigProviderResolver {
 
     private static volatile Config config = null;
 
@@ -19,7 +19,7 @@ public class DefaultConfigProviderResolver extends ConfigProviderResolver {
     @Override
     public Config getConfig(ClassLoader loader) {
         if (config == null) {
-            synchronized (DefaultConfigProviderResolver.class) {
+            synchronized (LocalConfigProviderResolver.class) {
                 if (config != null) {
                     return config;
                 }

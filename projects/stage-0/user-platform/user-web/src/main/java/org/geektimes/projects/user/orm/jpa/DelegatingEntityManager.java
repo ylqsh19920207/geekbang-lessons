@@ -1,6 +1,7 @@
 package org.geektimes.projects.user.orm.jpa;
 
-import org.geektimes.context.ComponentContext;
+
+import org.geektimes.injection.context.ComponentContext;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.*;
