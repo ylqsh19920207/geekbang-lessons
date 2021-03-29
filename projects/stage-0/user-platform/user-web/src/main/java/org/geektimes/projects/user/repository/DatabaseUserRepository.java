@@ -1,7 +1,7 @@
 package org.geektimes.projects.user.repository;
 
 
-import org.geektimes.injection.context.ComponentContext;
+import org.geektimes.context.ClassicComponentContext;
 import org.geektimes.injection.function.ThrowableFunction;
 import org.geektimes.projects.user.domain.User;
 import org.geektimes.projects.user.sql.DBConnectionManager;
@@ -25,10 +25,7 @@ public class DatabaseUserRepository implements UserRepository {
     /**
      * 通用处理方式
      */
-    private static Consumer<Throwable> COMMON_EXCEPTION_HANDLER = e -> {
-        e.printStackTrace();
-        logger.log(Level.SEVERE, e.getMessage());
-    };
+    private static Consumer<Throwable> COMMON_EXCEPTION_HANDLER = e -> logger.log(Level.SEVERE, e.getMessage());
 
     public static final String INSERT_USER_DML_SQL =
             "INSERT INTO users(name,password,email,phoneNumber) VALUES " +
@@ -39,7 +36,7 @@ public class DatabaseUserRepository implements UserRepository {
     private final DBConnectionManager dbConnectionManager;
 
     public DatabaseUserRepository() {
-        this.dbConnectionManager = ComponentContext.getInstance().getComponent("bean/DBConnectionManager");
+        this.dbConnectionManager = ClassicComponentContext.getInstance().getComponent("bean/DBConnectionManager");
     }
 
     private Connection getConnection() {
@@ -48,8 +45,7 @@ public class DatabaseUserRepository implements UserRepository {
 
     @Override
     public boolean save(User user) {
-        return execute(INSERT_USER_DML_SQL, COMMON_EXCEPTION_HANDLER, user.getName(),
-                user.getPassword(),user.getEmail(),user.getPhoneNumber());
+        return false;
     }
 
     @Override
@@ -118,7 +114,21 @@ public class DatabaseUserRepository implements UserRepository {
         Connection connection = getConnection();
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            assemblePreparedStatement(preparedStatement, args);
+            for (int i = 0; i < args.length; i++) {
+                Object arg = args[i];
+                Class argType = arg.getClass();
+
+                Class wrapperType = wrapperToPrimitive(argType);
+
+                if (wrapperType == null) {
+                    wrapperType = argType;
+                }
+
+                // Boolean -> boolean
+                String methodName = preparedStatementMethodMappings.get(argType);
+                Method method = PreparedStatement.class.getMethod(methodName, wrapperType);
+                method.invoke(preparedStatement, i + 1, args);
+            }
             ResultSet resultSet = preparedStatement.executeQuery();
             // 返回一个 POJO List -> ResultSet -> POJO List
             // ResultSet -> T
@@ -129,39 +139,9 @@ public class DatabaseUserRepository implements UserRepository {
         return null;
     }
 
-    protected boolean execute(String sql, Consumer<Throwable> exceptionHandler, Object... args) {
-        Connection connection = getConnection();
-        try {
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            assemblePreparedStatement(preparedStatement, args);
-            return preparedStatement.execute();
-        } catch (Throwable e) {
-            exceptionHandler.accept(e);
-        }
-        return false;
-    }
-
 
     private static String mapColumnLabel(String fieldName) {
         return fieldName;
-    }
-
-    private void assemblePreparedStatement(PreparedStatement preparedStatement, Object... args) throws Throwable {
-        for (int i = 0; i < args.length; i++) {
-            Object arg = args[i];
-            Class argType = arg.getClass();
-
-            Class wrapperType = wrapperToPrimitive(argType);
-
-            if (wrapperType == null) {
-                wrapperType = argType;
-            }
-
-            // Boolean -> boolean
-            String methodName = preparedStatementMethodMappings.get(argType);
-            Method method = PreparedStatement.class.getMethod(methodName, int.class, wrapperType);
-            method.invoke(preparedStatement, i + 1, arg);
-        }
     }
 
     /**

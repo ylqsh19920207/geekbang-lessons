@@ -7,6 +7,8 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.lang.String.format;
+
 public class ServletContextConfigSource extends MapBasedConfigSource {
 
     private Map configData = new HashMap();
@@ -14,7 +16,7 @@ public class ServletContextConfigSource extends MapBasedConfigSource {
     private final ServletContext servletContext;
 
     public ServletContextConfigSource(ServletContext servletContext) {
-        super("ServletContext Init Parameters", 500);
+        super(format("ServletContext[path:%s] Init Parameters", servletContext.getContextPath()), 500);
         this.servletContext = servletContext;
         Enumeration<String> parameterNames = servletContext.getInitParameterNames();
         while (parameterNames.hasMoreElements()) {

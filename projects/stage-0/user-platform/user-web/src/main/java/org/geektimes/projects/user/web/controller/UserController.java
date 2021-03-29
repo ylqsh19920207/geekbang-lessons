@@ -1,6 +1,6 @@
 package org.geektimes.projects.user.web.controller;
 
-import org.geektimes.injection.context.ComponentContext;
+import org.geektimes.context.ClassicComponentContext;
 import org.geektimes.projects.user.domain.User;
 import org.geektimes.projects.user.service.UserService;
 import org.geektimes.web.mvc.controller.PageController;
@@ -22,7 +22,7 @@ public class UserController implements PageController {
     private UserService userService;
 
     public UserController() {
-        userService = ComponentContext.getInstance().getComponent("bean/UserService");
+        userService = ClassicComponentContext.getInstance().getComponent("bean/UserService");
     }
 
     @GET

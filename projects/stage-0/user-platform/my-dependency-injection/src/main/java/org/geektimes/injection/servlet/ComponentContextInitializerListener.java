@@ -1,6 +1,8 @@
 package org.geektimes.injection.servlet;
 
-import org.geektimes.injection.context.ComponentContext;
+
+
+import org.geektimes.context.ClassicComponentContext;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
@@ -17,7 +19,7 @@ public class ComponentContextInitializerListener implements ServletContextListen
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         this.servletContext = sce.getServletContext();
-        ComponentContext context = new ComponentContext();
+        ClassicComponentContext context = new ClassicComponentContext();
         context.init(servletContext);
 
 //        MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
