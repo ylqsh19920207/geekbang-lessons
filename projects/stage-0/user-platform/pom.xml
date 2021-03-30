@@ -46,7 +46,7 @@
         <hibernate.version>5.4.29.Final</hibernate.version>
         <hibernate.validator.version>5.4.3.Final</hibernate.validator.version>
         <glassfish-el.version>3.0.1-b08</glassfish-el.version>
-        <jackson.version>2.9.5</jackson.version>
+        <jackson.version>2.9.9</jackson.version>
         <activemq.version>5.9.1</activemq.version>
 
         <!-- Testing 版本 -->
